@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { saveAnalysis } from '@/lib/firestore';
+import { useState, useRef } from "react";
+import ReactMarkdown from "react-markdown";
+import { saveAnalysis } from "@/lib/firestore";
 
 export default function ImageAnalysisPage() {
   const [image, setImage] = useState(null);
@@ -13,7 +13,7 @@ export default function ImageAnalysisPage() {
   const fileInputRef = useRef(null);
 
   const handleFile = (file) => {
-    if (!file || !file.type.startsWith('image/')) return;
+    if (!file || !file.type.startsWith("image/")) return;
     setImage(file);
     setAnalysis(null);
     const reader = new FileReader();
@@ -34,10 +34,10 @@ export default function ImageAnalysisPage() {
 
     try {
       const formData = new FormData();
-      formData.append('image', image);
+      formData.append("image", image);
 
-      const res = await fetch('/api/analyze-image', {
-        method: 'POST',
+      const res = await fetch("/api/analyze-image", {
+        method: "POST",
         body: formData,
       });
 
@@ -52,7 +52,6 @@ export default function ImageAnalysisPage() {
         analysis: data.analysis,
         urgency: data.urgency,
       });
-
     } catch (err) {
       setAnalysis({
         error: true,
@@ -67,7 +66,7 @@ export default function ImageAnalysisPage() {
     setImage(null);
     setImagePreview(null);
     setAnalysis(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -76,16 +75,17 @@ export default function ImageAnalysisPage() {
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
           📸 Medical Image Analysis
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-          Upload photos of skin conditions, wounds, rashes, or eye symptoms for AI-powered assessment.
+        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+          Upload photos of skin conditions, wounds, rashes, or eye symptoms for
+          AI-powered assessment.
         </p>
       </div>
 
       <div className="disclaimer-bar">
         <span>⚠️</span>
         <span>
-          Image analysis provides initial assessment only. Do not use for definitive diagnosis.
-          Always consult a qualified healthcare provider.
+          Image analysis provides initial assessment only. Do not use for
+          definitive diagnosis. Always consult a qualified healthcare provider.
         </span>
       </div>
 
@@ -93,8 +93,11 @@ export default function ImageAnalysisPage() {
         {/* Upload Zone */}
         <div>
           <div
-            className={`upload-zone ${dragover ? 'dragover' : ''} ${imagePreview ? 'has-image' : ''}`}
-            onDragOver={(e) => { e.preventDefault(); setDragover(true); }}
+            className={`upload-zone ${dragover ? "dragover" : ""} ${imagePreview ? "has-image" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragover(true);
+            }}
             onDragLeave={() => setDragover(false)}
             onDrop={handleDrop}
             onClick={() => !imagePreview && fileInputRef.current?.click()}
@@ -108,29 +111,37 @@ export default function ImageAnalysisPage() {
             />
 
             {imagePreview ? (
-              <img src={imagePreview} alt="Upload preview" className="upload-preview" />
+              <img
+                src={imagePreview}
+                alt="Upload preview"
+                className="upload-preview"
+              />
             ) : (
               <>
                 <div className="upload-zone-icon">📷</div>
                 <h3>Upload Medical Image</h3>
-                <p>Drag & drop or click to browse<br />Supports JPG, PNG, WebP</p>
+                <p>
+                  Drag & drop or click to browse
+                  <br />
+                  Supports JPG, PNG, WebP
+                </p>
               </>
             )}
           </div>
 
           {imagePreview && (
-            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
               <button
                 className="analyze-btn"
                 onClick={handleAnalyze}
                 disabled={loading}
               >
-                {loading ? '⏳ Analyzing with Gemini...' : '🔍 Analyze Image'}
+                {loading ? "⏳ Analyzing with Gemini..." : "🔍 Analyze Image"}
               </button>
               <button
                 className="btn btn-secondary"
                 onClick={handleReset}
-                style={{ flex: '0 0 auto' }}
+                style={{ flex: "0 0 auto" }}
               >
                 ✕ Clear
               </button>
@@ -153,9 +164,15 @@ export default function ImageAnalysisPage() {
           </h3>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <div style={{ textAlign: "center", padding: "60px 0" }}>
               <div className="loading-spinner" />
-              <p style={{ color: 'var(--text-muted)', marginTop: 16, fontSize: 14 }}>
+              <p
+                style={{
+                  color: "var(--text-muted)",
+                  marginTop: 16,
+                  fontSize: 14,
+                }}
+              >
                 Analyzing image with Gemini AI...
               </p>
             </div>
@@ -167,7 +184,10 @@ export default function ImageAnalysisPage() {
             <div className="analysis-placeholder">
               <div className="analysis-placeholder-icon">🔬</div>
               <h3>No Analysis Yet</h3>
-              <p>Upload an image and click "Analyze" to get AI-powered assessment results.</p>
+              <p>
+                Upload an image and click "Analyze" to get AI-powered assessment
+                results.
+              </p>
             </div>
           )}
         </div>

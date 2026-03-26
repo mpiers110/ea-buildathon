@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import Link from 'next/link';
-import { listRecords } from '@/lib/firestore';
+import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import Link from "next/link";
+import { listRecords } from "@/lib/firestore";
 
 export default function RecordsPage() {
   const [records, setRecords] = useState([]);
@@ -18,21 +18,21 @@ export default function RecordsPage() {
   }, []);
 
   const formatDate = (iso) => {
-    return new Date(iso).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(iso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getTriageBadge = (level) => {
-    const l = (level || 'low').toLowerCase();
-    const icons = { low: '🟢', moderate: '🟡', high: '🔴', emergency: '🚨' };
+    const l = (level || "low").toLowerCase();
+    const icons = { low: "🟢", moderate: "🟡", high: "🔴", emergency: "🚨" };
     return (
       <span className={`triage-badge ${l}`}>
-        {icons[l] || '🟢'} {level || 'LOW'}
+        {icons[l] || "🟢"} {level || "LOW"}
       </span>
     );
   };
@@ -52,7 +52,13 @@ export default function RecordsPage() {
           <div className="ehr-document-header">
             <div>
               <h2>📋 Electronic Health Record</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
+              <p
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: 13,
+                  marginTop: 4,
+                }}
+              >
                 Generated on {formatDate(selectedRecord.createdAt)}
               </p>
             </div>
@@ -67,9 +73,11 @@ export default function RecordsPage() {
             <button
               className="btn btn-primary"
               onClick={() => {
-                const blob = new Blob([selectedRecord.ehr], { type: 'text/markdown' });
+                const blob = new Blob([selectedRecord.ehr], {
+                  type: "text/markdown",
+                });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
+                const a = document.createElement("a");
                 a.href = url;
                 a.download = `EHR_${selectedRecord.id}.md`;
                 a.click();
@@ -98,8 +106,9 @@ export default function RecordsPage() {
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
           📋 Health Records
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-          View and manage auto-generated Electronic Health Records from AI consultations.
+        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+          View and manage auto-generated Electronic Health Records from AI
+          consultations.
         </p>
       </div>
 
@@ -107,10 +116,12 @@ export default function RecordsPage() {
         <div className="empty-state">
           <div className="empty-state-icon">📋</div>
           <h3>No Records Yet</h3>
-          <p>
-            Start a consultation and generate an EHR to see records here.
-          </p>
-          <Link href="/consultation" className="btn btn-primary" style={{ marginTop: 20 }}>
+          <p>Start a consultation and generate an EHR to see records here.</p>
+          <Link
+            href="/consultation"
+            className="btn btn-primary"
+            style={{ marginTop: 20 }}
+          >
             💬 Start Consultation
           </Link>
         </div>
@@ -127,7 +138,7 @@ export default function RecordsPage() {
                 <span className="record-card-title">
                   Consultation #{record.id?.slice(0, 8)}
                 </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   {getTriageBadge(record.triageLevel)}
                   <span className="record-card-date">
                     {formatDate(record.createdAt)}
@@ -135,7 +146,7 @@ export default function RecordsPage() {
                 </div>
               </div>
               <p className="record-card-summary">
-                {record.summary || 'AI-generated consultation record'}
+                {record.summary || "AI-generated consultation record"}
               </p>
             </div>
           ))}

@@ -1,12 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { createConsultation, updateConsultation, saveRecord } from '@/lib/firestore';
+import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import {
+  createConsultation,
+  updateConsultation,
+  saveRecord,
+} from "@/lib/firestore";
 
 export default function ConsultationPage() {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,11 +26,12 @@ export default function ConsultationPage() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    const newSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const newSessionId =
+      Date.now().toString(36) + Math.random().toString(36).substr(2);
     setSessionId(newSessionId);
 
     const initialAiMsg = {
-      role: 'ai',
+      role: "ai",
       content: `### 👋 Welcome to AfyaScribe Consultation
 
 I'm your AI-powered healthcare triage assistant. I'll guide you through a step-by-step patient assessment.
@@ -38,7 +43,10 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
 **Let's begin!** Please describe the patient's main complaint or symptoms.
 
 > ⚠️ *This is an AI assistant for initial assessment only. Always refer to qualified healthcare providers for definitive diagnosis.*`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
     setMessages([initialAiMsg]);
@@ -49,11 +57,11 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
     });
 
     // Start with text input for initial complaint
-    setActiveInput({ type: 'text' });
+    setActiveInput({ type: "text" });
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleImageSelect = (e) => {
@@ -70,32 +78,35 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
     if (!text && !imgFile) return;
 
     const userMsg = {
-      role: 'user',
+      role: "user",
       content: text,
       image: imgPreviewUrl,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
     setActiveInput(null);
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('message', text);
-    formData.append('sessionId', sessionId);
+    formData.append("message", text);
+    formData.append("sessionId", sessionId);
     if (imgFile) {
-      formData.append('image', imgFile);
+      formData.append("image", imgFile);
     }
 
     // Clear image state
     setImage(null);
     setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
     try {
-      const res = await fetch('/api/consultation', {
-        method: 'POST',
+      const res = await fetch("/api/consultation", {
+        method: "POST",
         body: formData,
       });
 
@@ -107,18 +118,23 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
       }
 
       const aiMsg = {
-        role: 'ai',
+        role: "ai",
         content: data.response,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
 
-      setMessages(prev => [...prev, aiMsg]);
+      setMessages((prev) => [...prev, aiMsg]);
 
       // Set the active input type for the next question
       if (data.inputType) {
         setActiveInput(data.inputType);
-        if (data.inputType.type === 'scale') {
-          setScaleValue(Math.ceil((data.inputType.min + data.inputType.max) / 2));
+        if (data.inputType.type === "scale") {
+          setScaleValue(
+            Math.ceil((data.inputType.min + data.inputType.max) / 2),
+          );
         }
       } else {
         // Final assessment — no input needed, but keep textarea available
@@ -130,14 +146,19 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
         messages: [...messages, userMsg, aiMsg],
         triageLevel: data.triageLevel || triageLevel,
       });
-
     } catch (err) {
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        content: `❌ **Error**: ${err.message}\n\nPlease check your API key in \`.env.local\` and ensure the server is running.`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }]);
-      setActiveInput({ type: 'text' });
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: `❌ **Error**: ${err.message}\n\nPlease check your API key in \`.env.local\` and ensure the server is running.`,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
+      setActiveInput({ type: "text" });
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -163,15 +184,17 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
     setEhrGenerating(true);
 
     try {
-      const res = await fetch('/api/generate-ehr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/generate-ehr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          messages: messages.filter(m => m.role !== 'system').map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
+          messages: messages
+            .filter((m) => m.role !== "system")
+            .map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
           triageLevel,
         }),
       });
@@ -182,38 +205,49 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
       // Save EHR to Firestore
       await saveRecord({
         sessionId,
-        triageLevel: triageLevel || 'LOW',
+        triageLevel: triageLevel || "LOW",
         ehr: data.ehr,
-        summary: data.summary || 'Consultation record',
+        summary: data.summary || "Consultation record",
       });
 
       setEhrGenerated(true);
 
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        content: `### ✅ Electronic Health Record Generated
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: `### ✅ Electronic Health Record Generated
 
 The EHR has been saved successfully. You can view it in the **Health Records** section.
 
-**Triage Level**: ${triageLevel || 'PENDING'}
+**Triage Level**: ${triageLevel || "PENDING"}
 
 [View Records →](/records)`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }]);
-
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
     } catch (err) {
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        content: `❌ **Error generating EHR**: ${err.message}`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: `❌ **Error generating EHR**: ${err.message}`,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
     } finally {
       setEhrGenerating(false);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -232,14 +266,13 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
             <p>Step-by-step patient assessment</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {triageLevel && (
             <div className={`triage-badge ${triageBadgeClass}`}>
-              {triageLevel === 'LOW' && '🟢'}
-              {triageLevel === 'MODERATE' && '🟡'}
-              {triageLevel === 'HIGH' && '🔴'}
-              {triageLevel === 'EMERGENCY' && '🚨'}
-              {' '}{triageLevel}
+              {triageLevel === "LOW" && "🟢"}
+              {triageLevel === "MODERATE" && "🟡"}
+              {triageLevel === "HIGH" && "🔴"}
+              {triageLevel === "EMERGENCY" && "🚨"} {triageLevel}
             </div>
           )}
           {messages.length > 3 && !ehrGenerated && (
@@ -248,7 +281,7 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
               onClick={handleGenerateEHR}
               disabled={ehrGenerating}
             >
-              {ehrGenerating ? '⏳ Generating...' : '📋 Generate EHR'}
+              {ehrGenerating ? "⏳ Generating..." : "📋 Generate EHR"}
             </button>
           )}
         </div>
@@ -257,11 +290,18 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
       {/* Messages */}
       <div className="chat-messages">
         {messages.map((msg, i) => (
-          <div key={i} className={`chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
+          <div
+            key={i}
+            className={`chat-bubble ${msg.role === "user" ? "user" : "ai"}`}
+          >
             {msg.image && (
-              <img src={msg.image} alt="Attached" className="chat-bubble-image" />
+              <img
+                src={msg.image}
+                alt="Attached"
+                className="chat-bubble-image"
+              />
             )}
-            {msg.role === 'ai' ? (
+            {msg.role === "ai" ? (
               <ReactMarkdown>{msg.content}</ReactMarkdown>
             ) : (
               <span>{msg.content}</span>
@@ -284,7 +324,7 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
       {/* Interactive Input Area */}
       <div className="chat-input-area">
         {/* Options Input */}
-        {activeInput?.type === 'options' && !loading && (
+        {activeInput?.type === "options" && !loading && (
           <div className="chat-options-area">
             <div className="chat-options-grid">
               {activeInput.options.map((option, i) => (
@@ -304,11 +344,17 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
         )}
 
         {/* Scale Input */}
-        {activeInput?.type === 'scale' && !loading && (
+        {activeInput?.type === "scale" && !loading && (
           <div className="chat-scale-area">
             <div className="chat-scale-header">
               <span className="chat-scale-label">
-                {scaleValue <= 3 ? '😊 Mild' : scaleValue <= 6 ? '😐 Moderate' : scaleValue <= 8 ? '😟 Severe' : '😣 Very Severe'}
+                {scaleValue <= 3
+                  ? "😊 Mild"
+                  : scaleValue <= 6
+                    ? "😐 Moderate"
+                    : scaleValue <= 8
+                      ? "😟 Severe"
+                      : "😣 Very Severe"}
               </span>
               <span className="chat-scale-value">{scaleValue}</span>
             </div>
@@ -326,10 +372,7 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
                 <span>{activeInput.max}</span>
               </div>
             </div>
-            <button
-              className="chat-scale-submit"
-              onClick={handleScaleSubmit}
-            >
+            <button className="chat-scale-submit" onClick={handleScaleSubmit}>
               Confirm: {scaleValue} / {activeInput.max} →
             </button>
           </div>
@@ -346,7 +389,7 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
                 onClick={() => {
                   setImage(null);
                   setImagePreview(null);
-                  if (fileInputRef.current) fileInputRef.current.value = '';
+                  if (fileInputRef.current) fileInputRef.current.value = "";
                 }}
               >
                 ✕
@@ -373,11 +416,11 @@ The EHR has been saved successfully. You can view it in the **Health Records** s
               className="chat-input"
               rows={1}
               placeholder={
-                activeInput?.type === 'options'
-                  ? 'Or type your own answer...'
-                  : activeInput?.type === 'scale'
-                    ? 'Or type a number...'
-                    : 'Describe symptoms or answer the question...'
+                activeInput?.type === "options"
+                  ? "Or type your own answer..."
+                  : activeInput?.type === "scale"
+                    ? "Or type a number..."
+                    : "Describe symptoms or answer the question..."
               }
               value={input}
               onChange={(e) => setInput(e.target.value)}
