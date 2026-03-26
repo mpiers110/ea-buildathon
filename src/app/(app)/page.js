@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { getDashboardStats } from "@/lib/firestore";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -13,24 +14,12 @@ export default function DashboardPage() {
   const [animateStats, setAnimateStats] = useState(false);
 
   useEffect(() => {
-    // Load stats from localStorage
-    const consultations = JSON.parse(
-      localStorage.getItem("afya_consultations") || "[]",
-    );
-    const analyses = JSON.parse(localStorage.getItem("afya_analyses") || "[]");
-    const records = JSON.parse(localStorage.getItem("afya_records") || "[]");
-    const highTriage = records.filter(
-      (r) => r.triageLevel === "HIGH" || r.triageLevel === "EMERGENCY",
-    ).length;
-
-    setStats({
-      consultations: consultations.length,
-      images: analyses.length,
-      records: records.length,
-      triageHigh: highTriage,
-    });
-
-    setTimeout(() => setAnimateStats(true), 100);
+    async function loadStats() {
+      const liveStats = await getDashboardStats();
+      setStats(liveStats);
+      setTimeout(() => setAnimateStats(true), 100);
+    }
+    loadStats();
   }, []);
 
   return (

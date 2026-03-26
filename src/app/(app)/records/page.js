@@ -3,14 +3,18 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
+import { listRecords } from '@/lib/firestore';
 
 export default function RecordsPage() {
   const [records, setRecords] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('afya_records') || '[]');
-    setRecords(saved);
+    async function loadRecords() {
+      const saved = await listRecords();
+      setRecords(saved);
+    }
+    loadRecords();
   }, []);
 
   const formatDate = (iso) => {

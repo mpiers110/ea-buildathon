@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { saveAnalysis } from '@/lib/firestore';
 
 export default function ImageAnalysisPage() {
   const [image, setImage] = useState(null);
@@ -45,16 +46,12 @@ export default function ImageAnalysisPage() {
 
       setAnalysis(data);
 
-      // Save to localStorage
-      const analyses = JSON.parse(localStorage.getItem('afya_analyses') || '[]');
-      analyses.unshift({
-        id: Date.now().toString(36),
-        createdAt: new Date().toISOString(),
+      // Save to Firestore
+      await saveAnalysis({
         fileName: image.name,
         analysis: data.analysis,
         urgency: data.urgency,
       });
-      localStorage.setItem('afya_analyses', JSON.stringify(analyses));
 
     } catch (err) {
       setAnalysis({

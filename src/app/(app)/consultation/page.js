@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { createConsultation, updateConsultation, saveRecord } from '@/lib/firestore';
 
 export default function ConsultationPage() {
   const [messages, setMessages] = useState([]);
@@ -21,9 +22,10 @@ export default function ConsultationPage() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    setSessionId(Date.now().toString(36) + Math.random().toString(36).substr(2));
+    const newSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+    setSessionId(newSessionId);
 
-    setMessages([{
+    const initialAiMsg = {
       role: 'ai',
       content: `### 👋 Welcome to AfyaScribe Consultation
 
@@ -37,7 +39,14 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
 
 > ⚠️ *This is an AI assistant for initial assessment only. Always refer to qualified healthcare providers for definitive diagnosis.*`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    }]);
+    };
+
+    setMessages([initialAiMsg]);
+
+    // Initialize consultation in Firestore
+    createConsultation(newSessionId, {
+      messages: [initialAiMsg],
+    });
 
     // Start with text input for initial complaint
     setActiveInput({ type: 'text' });
@@ -116,21 +125,11 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
         setActiveInput(null);
       }
 
-      // Save consultation to localStorage
-      const consultations = JSON.parse(localStorage.getItem('afya_consultations') || '[]');
-      const existing = consultations.find(c => c.sessionId === sessionId);
-      if (existing) {
-        existing.messages = [...(existing.messages || []), userMsg, aiMsg];
-        existing.triageLevel = data.triageLevel || existing.triageLevel;
-      } else {
-        consultations.push({
-          sessionId,
-          startedAt: new Date().toISOString(),
-          messages: [userMsg, aiMsg],
-          triageLevel: data.triageLevel,
-        });
-      }
-      localStorage.setItem('afya_consultations', JSON.stringify(consultations));
+      // Save consultation to Firestore
+      updateConsultation(sessionId, {
+        messages: [...messages, userMsg, aiMsg],
+        triageLevel: data.triageLevel || triageLevel,
+      });
 
     } catch (err) {
       setMessages(prev => [...prev, {
@@ -180,15 +179,13 @@ I'm your AI-powered healthcare triage assistant. I'll guide you through a step-b
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      const records = JSON.parse(localStorage.getItem('afya_records') || '[]');
-      records.unshift({
-        id: sessionId,
-        createdAt: new Date().toISOString(),
+      // Save EHR to Firestore
+      await saveRecord({
+        sessionId,
         triageLevel: triageLevel || 'LOW',
         ehr: data.ehr,
         summary: data.summary || 'Consultation record',
       });
-      localStorage.setItem('afya_records', JSON.stringify(records));
 
       setEhrGenerated(true);
 

@@ -14,134 +14,114 @@
 - **Language barriers** — medical information only available in English
 - **Overwhelmed CHWs** — Community Health Workers handle 100s of patients with zero digital tools
 
-> \*A mother in rural Kenya notices a rash on her child. The nearest clinic is 4 hours away. She doesn't know if it's urgent or can wait. She has no record of previous visits. **AfyaScribe changes this.\***
+> *A mother in rural Kenya notices a rash on her child. The nearest clinic is 4 hours away. She doesn't know if it's urgent or can wait. She has no record of previous visits. **AfyaScribe changes this.***
 
 ---
 
 ## 💡 The Solution: AfyaScribe
 
-**AfyaScribe** ("Afya" = Health in Swahili) is a **multimodal AI-powered healthcare assistant** that enables Community Health Workers and patients in rural areas to:
+**AfyaScribe** ("Afya" = Health in Swahili) is a **multimodal AI-powered healthcare assistant** built with **Next.js** and **Google Gemini** that enables Community Health Workers and patients in rural areas to:
 
-1. **📸 Snap & Assess** — Upload photos of skin conditions, wounds, eye symptoms → AI-powered visual analysis
-2. **💬 Describe & Triage** — Chat with AI about symptoms in plain language → intelligent triage & urgency scoring
-3. **📋 Auto-Generate EHR** — Every consultation auto-generates a structured Electronic Health Record
-4. **📝 Clinical Notes** — AI generates professional clinical notes from the conversation
-5. **🌍 Multilingual** — Works in English and Swahili (extensible to other languages)
+1. **📸 Smart Image Assessment** — Upload photos of skin conditions, wounds, or eye symptoms for AI-powered visual analysis.
+2. **💬 Interactive Consultation** — A guided, one-question-at-a-time chat assessment with custom UI widgets (scales, option buttons) for precise data collection.
+3. **📋 Persistent EHRs** — Every consultation auto-generates a structured Electronic Health Record (SOAP format) saved securely in **Firebase Firestore**.
+4. **🟢 Intelligent Triage** — Real-time urgency scoring (Low, Moderate, High, Emergency) based on multimodal inputs.
 
 ---
 
 ## 🏗️ Architecture & Google Cloud Stack
 
 ```
-┌──────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────┐
 │                    AfyaScribe Frontend                    │
-│         (Responsive Web App - HTML/CSS/JS)           │
-│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
-│  │ Symptom  │ │  Image   │ │   EHR    │ │ Clinical │ │
-│  │  Chat    │ │  Upload  │ │  Viewer  │ │  Notes   │ │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
-└───────┼─────────────┼────────────┼────────────┼───────┘
-        │             │            │            │
-┌───────┼─────────────┼────────────┼────────────┼───────┐
-│       ▼             ▼            ▼            ▼       │
-│              Node.js / Express Backend                │
-│                                                       │
-│  ┌────────────────────────────────────────────────┐   │
-│  │              Google Cloud APIs                  │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────────┐   │   │
-│  │  │ Gemini   │ │ Vision   │ │ Cloud        │   │   │
-│  │  │ API      │ │ API      │ │ Firestore    │   │   │
-│  │  │(Multimod)│ │(Image    │ │ (EHR Store)  │   │   │
-│  │  │          │ │ Analysis)│ │              │   │   │
-│  │  └──────────┘ └──────────┘ └──────────────┘   │   │
-│  └────────────────────────────────────────────────┘   │
-└───────────────────────────────────────────────────────┘
+│            (Next.js 15 App Router - React 19)             │
+│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌───────────┐     │
+│  │ Dashboard│ │ Consult  │ │  Image   │ │ Records   │     │
+│  │ (Stats)  │ │ (Chat)   │ │  Assess  │ │ (Firestore)│     │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └─────┬──────┘     │
+└───────┼─────────────┼────────────┼─────────────┼──────────┘
+        │             │            │             │
+        └─────────────┴─────┬──────┴─────────────┘
+                            ▼
+              ┌──────────────────────────┐
+              │    Next.js API Routes     │
+              │  (BFF / Serverless)      │
+              └─────────────┬────────────┘
+                            ▼
+      ┌──────────────────────────────────────────────┐
+      │             Google Cloud & Firebase          │
+      │  ┌────────────┐ ┌────────────┐ ┌───────────┐ │
+      │  │ Gemini 2.0 │ │ Firebase   │ │ Vertex AI │ │
+      │  │ Flash API  │ │ Firestore  │ │ Platform  │ │
+      │  └────────────┘ └────────────┘ └───────────┘ │
+      └──────────────────────────────────────────────┘
 ```
 
 ### Google Technologies Used
 
 | Technology                        | Purpose                                                           |
 | --------------------------------- | ----------------------------------------------------------------- |
-| **Gemini API** (gemini-2.5-flash) | Multimodal AI — symptom chat, image understanding, clinical notes |
-| **Google Cloud Vision API**       | Medical image preprocessing, label detection, feature extraction  |
-| **Vertex AI**                     | Model hosting, structured prediction pipelines                    |
-| **Cloud Firestore**               | Store patient EHRs, consultation history                          |
-| **Google Cloud Run**              | Serverless deployment                                             |
+| **Gemini 2.0 Flash**              | Core multimodal AI — symptom triage, image assessment, EHR generation |
+| **Firebase Firestore**            | Persistent storage for consultations, EHR records, and image analyses |
+| **Next.js 15**                    | Unified framework for the responsive UI and Serverless API routes |
+| **Google Cloud Run**             | Recommended platform for scalable deployment                      |
 
 ---
 
-## 🖥️ Key Screens & Features
+## 🖥️ Key Features
 
-### 1. **Landing / Dashboard**
+### 1. **Interactive Consultation (Star Feature ⭐)**
+Unlike basic chatbots, AfyaScribe uses a **guided diagnostic flow**:
+- **One question at a time**: Prevents user overwhelm.
+- **Dynamic Widgets**: Pain scales (1-10) and option buttons (Age ranges, symptoms) for faster data entry.
+- **Multimodal**: Attach images mid-conversation for Gemini to analyze contextually.
 
-- Clean, medical-themed hero
-- Quick-action cards: "Start Consultation", "View Records", "Upload Image"
-- Stats: total consultations, patients assessed today
+### 2. **Visual Assessment**
+- Dedicated tool for skin, wound, and eye assessment.
+- Gemini provides structured results: Observation, Potential Conditions, Urgency, and Next Steps.
 
-### 2. **Consultation Chat (Star Feature ⭐)**
+### 3. **Health Records Repository**
+- All generated EHRs (SOAP notes) are saved to Firestore.
+- CHWs can search past records, view summaries, and download notes as Markdown files.
 
-- Conversational symptom assessment powered by Gemini
-- AI asks follow-up questions intelligently
-- Real-time **triage score** (🟢 Low → 🟡 Moderate → 🔴 High urgency)
-- Supports text + image input in same conversation
-- Swahili/English toggle
+---
 
-### 3. **Image Analysis**
+## 🛠️ Getting Started
 
-- Upload/capture photos of: skin conditions, wounds, eye symptoms, rashes
-- Vision API extracts features → Gemini provides assessment
-- Side-by-side: uploaded image + AI analysis with confidence scores
-- Visual annotation of detected areas
+### Prerequisites
+- Node.js 18+
+- Gemini API Key ([Get one here](https://aistudio.google.com/apikey))
+- Firebase Project ([Console](https://console.firebase.google.com/))
 
-### 4. **EHR Generator**
-
-- Auto-generated from consultation
-- Structured format: Patient info, Chief complaint, History, Assessment, Plan
-- Downloadable as PDF
-- Stored in Firestore for future reference
-
-### 5. **Clinical Notes**
-
-- SOAP-format notes auto-generated from the AI conversation
-- Subjective, Objective, Assessment, Plan
-- Editable by the CHW before saving
+### Installation
+1. Clone the repo
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env.local` file with:
+   ```plaintext
+   GEMINI_API_KEY=your_key
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+   NEXT_PUBLIC_FIREBASE_APP_ID=...
+   ```
+4. Run development server:
+   ```bash
+   npm run dev
+   ```
 
 ---
 
 ## 🔥 Why This Wins
-
-| Criteria               | How AfyaScribe Delivers                                              |
-| ---------------------- | -------------------------------------------------------------------- |
-| **High Impact**        | Directly addresses healthcare access for 600M+ underserved Africans  |
-| **Actual Problem**     | WHO reports 1 doctor per 10,000 people in rural East Africa          |
-| **Visual & Demo-able** | Live image analysis, real-time chat triage, auto-generated EHRs      |
-| **Google Tech**        | Deep integration with Gemini, Vision API, Vertex AI, Firestore       |
-| **Innovation**         | Multimodal AI + local language support = unprecedented accessibility |
-| **Feasibility**        | Can build MVP in 60 minutes with focused scope                       |
-
----
-
-## ⏱️ 60-Minute Build Plan
-
-| Time      | Task                                                                     |
-| --------- | ------------------------------------------------------------------------ |
-| 0-5 min   | Project setup (Vite + Express), API keys configured                      |
-| 5-15 min  | Backend: Gemini API integration, system prompts, image analysis endpoint |
-| 15-30 min | Frontend: Dashboard + Consultation chat UI                               |
-| 30-40 min | Image upload + analysis display, triage scoring                          |
-| 40-50 min | EHR generation + clinical notes auto-generation                          |
-| 50-55 min | Polish: animations, responsive design, loading states                    |
-| 55-60 min | Final testing + demo prep                                                |
-
----
-
-## 🗣️ Demo Script (2 minutes)
-
-1. **"Meet Mary"** — CHW in rural Kenya, handles 50+ patients/day with zero tools
-2. **Live demo**: Patient has skin rash → upload photo → AI analysis in seconds
-3. **Symptom chat**: "The patient has fever for 3 days and headache" → AI asks smart follow-ups → triage: 🔴 HIGH
-4. **Auto-generated EHR** — one click, professional medical record created
-5. **Impact**: "AfyaScribe can be the first line of healthcare for 600 million people"
+- **High Impact**: Directly addresses rural healthcare gaps for millions.
+- **Multimodal Innovation**: Seamlessly combines vision and text for better triage.
+- **CHW Friendly**: Minimal typing required via interactive buttons and scales.
+- **Ready for Field Use**: Full persistence means no data loss during unreliable connectivity.
+st line of healthcare for 600 million people"
 
 ---
 
